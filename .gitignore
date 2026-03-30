@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.jsonl
+*.bin
+*.bin.*
+third_party/
+
+# Mininet runtime artifacts
+/video/redandblack_2/
+/datasets/processed/
+/trained_models/
+

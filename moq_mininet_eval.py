@@ -42,18 +42,12 @@ BIN_PATHS = {
     "token": os.path.join(BASE_DIR, "moq-token")
 }
 
-# ✅ 使用官方示例视频作为源（100% 兼容 hang 工具，无 mfra/fiel atom）
-OFFICIAL_VIDEO = os.getenv("V_PCC_BBB_MP4", os.path.join(VIDEO_DIR, "bbb.mp4"))
-
-# ✅ 生成的分层视频路径（基于 bbb.mp4 生成，符合论文设计）
+# Review Artifact default: directly use two provided fragmented MP4s.
+# Base and Enhanced are intentionally separated to match paper baseline settings.
 VIDEO_PATHS = {
-    "base": os.path.join(VIDEO_DIR, "redandblack_2", "base", "redandblack_base_fragmented.mp4"),
-    "enhanced": os.path.join(VIDEO_DIR, "redandblack_2", "enhanced", "redandblack_enhanced_fragmented.mp4")
+    "base": os.path.join(VIDEO_DIR, "base.mp4"),
+    "enhanced": os.path.join(VIDEO_DIR, "enhanced.mp4"),
 }
-
-# 确保目录存在
-os.makedirs(os.path.dirname(VIDEO_PATHS["base"]), exist_ok=True)
-os.makedirs(os.path.dirname(VIDEO_PATHS["enhanced"]), exist_ok=True)
 
 # ✅ 使用独立的证书目录和文件前缀，避免与 topo_moq_eval_OFF.py 冲突
 CERT_DIR = "/tmp/moq_certs_test2"
@@ -552,59 +546,20 @@ def check_files():
 
 def prepare_layered_videos():
     """
-    基于 bbb.mp4 生成符合论文设计的双层视频 (大文件版)
-    
-    Base: 10Mbps, 2分钟 -> 约 150MB
-    Enhanced: 1Mbps, 2分钟 -> 约 15MB
+    Review Artifact mode: verify that `video/base.mp4` and `video/enhanced.mp4` exist.
+    The files are already fragmented and directly usable for MoQ/Hang streaming.
     """
-    if not os.path.exists(OFFICIAL_VIDEO):
-        error(f"❌ 严重错误: 找不到源视频 {OFFICIAL_VIDEO}\n")
+    missing = [k for k, p in VIDEO_PATHS.items() if not os.path.exists(p)]
+    if missing:
+        error(f"❌ Missing layered MP4 files in {VIDEO_DIR}: {missing}\n"
+              f"   Expected: video/base.mp4 and video/enhanced.mp4\n")
         return False
-    
-    info("🎬 正在生成符合论文比例的【大容量】分层视频...\n")
-    info("   (这将花费大约 10-30 秒，请耐心等待)\n")
-    
-    # --- 1. Base Layer (大文件: ~150MB) ---
-    if not os.path.exists(VIDEO_PATHS["base"]) or os.path.getsize(VIDEO_PATHS["base"]) < 100*1024*1024:
-        info("   📦 生成 Base Layer (10Mbps, 120s, 预计 ~150MB)...\n")
-        cmd_base = (f"ffmpeg -y -hide_banner -loglevel error "
-                    f"-stream_loop -1 -i {OFFICIAL_VIDEO} "
-                    f"-t 120 "
-                    f"-c:v libx264 -preset ultrafast -g 30 -keyint_min 30 -sc_threshold 0 "
-                    f"-b:v 10M -minrate 10M -maxrate 10M -bufsize 20M "
-                    f"-pix_fmt yuv420p "
-                    f"-movflags +frag_keyframe+empty_moov+default_base_moof+skip_trailer "
-                    f"{VIDEO_PATHS['base']}")
-        os.system(cmd_base)
-    
-    # --- 2. Enhanced Layer (小文件: ~15MB) ---
-    if not os.path.exists(VIDEO_PATHS["enhanced"]) or os.path.getsize(VIDEO_PATHS["enhanced"]) < 10*1024*1024:
-        info("   📦 生成 Enhanced Layer (1Mbps, 120s, 黑白, 预计 ~15MB)...\n")
-        cmd_enh = (f"ffmpeg -y -hide_banner -loglevel error "
-                   f"-stream_loop -1 -i {OFFICIAL_VIDEO} "
-                   f"-t 120 "
-                   f"-vf hue=s=0 "
-                   f"-c:v libx264 -preset ultrafast -g 30 -keyint_min 30 -sc_threshold 0 "
-                   f"-b:v 1M -minrate 1M -maxrate 1M -bufsize 2M "
-                   f"-pix_fmt yuv420p "
-                   f"-movflags +frag_keyframe+empty_moov+default_base_moof+skip_trailer "
-                   f"{VIDEO_PATHS['enhanced']}")
-        os.system(cmd_enh)
-    
-    # 验证文件大小比例
-    if os.path.exists(VIDEO_PATHS['base']) and os.path.exists(VIDEO_PATHS['enhanced']):
-        size_base = os.path.getsize(VIDEO_PATHS['base'])
-        size_enh = os.path.getsize(VIDEO_PATHS['enhanced'])
-        ratio = size_base / size_enh if size_enh > 0 else 0
-        
-        info(f"✅ 视频准备就绪:\n")
-        info(f"   Base:     {size_base/1024/1024:.2f} MB\n")
-        info(f"   Enhanced: {size_enh/1024/1024:.2f} MB\n")
-        info(f"   比例:     {ratio:.1f}:1 (完美符合 V-PCC 论文设计)\n")
-        return True
-    else:
-        error("❌ 视频生成失败\n")
-        return False
+
+    info("✅ Layered videos ready (Review Artifact mode):\n")
+    for k in ["base", "enhanced"]:
+        p = VIDEO_PATHS[k]
+        info(f"   {k}: {p} ({os.path.getsize(p)/1024/1024:.2f} MB)\n")
+    return True
 
 def generate_certs():
     """生成自签名证书，包含所有 relay 节点的 SAN"""

@@ -9,7 +9,7 @@ The core contributions demonstrated in this artifact include:
 - A **PPO-based dynamic grouping and layer allocation policy** that dictates Base vs. Enhanced layer subscriptions.
 - A **Mininet + Open vSwitch** experimentation environment to evaluate end-to-end QoE, Time-To-First-Byte (TTFB), and system overhead under constrained, heterogeneous network conditions.
 
-To keep the Artifact lightweight for the double-blind review process, we ship a script to generate toy datasets and utilize a small placeholder video (`video/bbb.mp4`) for end-to-end sanity testing. Full-scale traces and official point-cloud derived data are detailed below.
+To keep the Artifact lightweight for the double-blind review process, we ship a script to generate toy datasets and utilize two small fragmented MP4 placeholders (`video/base.mp4` and `video/enhanced.mp4`) for end-to-end sanity testing. Full-scale traces and official point-cloud derived data are detailed below.
 
 ## Repository Structure
 While files are kept minimal for the Review Artifact, the codebase maps to the following core system components:
@@ -25,7 +25,7 @@ While files are kept minimal for the Review Artifact, the codebase maps to the f
 - **Open vSwitch** (`ovs-vsctl` and OVS kernel modules/daemon)
 - **Rust** + **Cargo** (required to build the official MoQ binaries)
 - **Git**
-- **FFmpeg** (for generating fragmented Base/Enhanced MP4 layers from the placeholder video)
+- **FFmpeg** (optional; required only if you want to regenerate fragmented layers from a different placeholder)
 
 **Python dependencies (inside the experiment environment):**
 - Python 3.8+
@@ -51,7 +51,7 @@ This quick start demonstrates an end-to-end run of the MD2G-Cast pipeline using 
    ```
 
 **Notes:**
-- The initial run may take additional time as `moq_mininet_eval.py` will invoke FFmpeg to transcode and fragment the placeholder video into Base and Enhanced MP4s under the `video/` directory.
+- The artifact ships fragmented `video/base.mp4` and `video/enhanced.mp4`, so `moq_mininet_eval.py` will only validate their presence before running.
 - The artifact supports evaluating four baseline strategies via the `--strategy` flag: `md2g`, `rolling`, `heuristic`, and `clustering`.
 - To evaluate against a full dataset in the future, set the `DATASET_DIR` variable within `moq_mininet_eval.py` to point to your dataset root.
 

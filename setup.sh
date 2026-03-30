@@ -41,23 +41,17 @@ cat <<'EOF'
 
 V-PCC layer generation guidance (for full artifact / paper replication)
 -----------------------------------------------------------------------
-1) Download MPEG V-PCC official test content (e.g., "bbb.mp4") from the MPEG
-   V-PCC website / official distribution.
+1) Download MPEG V-PCC official test content (e.g., the official "bbb" sequence)
+   from the MPEG V-PCC website / official distribution.
 
-2) Generate Base + Enhanced layers into this repository's "video/" folder.
-   This codebase expects fragmented MP4 outputs for MoQ streaming.
+2) Generate fragmented Base + Enhanced MP4 layers for MoQ streaming.
+   Then place them into:
+     - video/base.mp4
+     - video/enhanced.mp4
 
-   In moq_mininet_eval.py, the default preparation does:
-     - Base  : re-encode from OFFICIAL_VIDEO with bitrate ~10 Mbps
-     - Enhanced: grayscale/enhanced layer with bitrate ~1 Mbps
-     - then outputs to:
-         video/redandblack_2/base/redandblack_base_fragmented.mp4
-         video/redandblack_2/enhanced/redandblack_enhanced_fragmented.mp4
-
-   If you want to bypass the default generation, replace video/bbb.mp4 with
-   your official "bbb.mp4" and keep OFFICIAL_VIDEO pointing to it.
-
-3) For the Review Artifact quick start, we ship a tiny placeholder video
-   (video/bbb.mp4) so the end-to-end pipeline can run without large uploads.
+3) Review Artifact quick start:
+   this repository already ships the two required fragmented placeholders
+   (`video/base.mp4` and `video/enhanced.mp4`), so no FFmpeg generation is needed
+   for end-to-end sanity testing.
 EOF
 
