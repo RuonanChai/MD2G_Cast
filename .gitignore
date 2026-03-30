@@ -11,5 +11,4 @@ third_party/
 # Mininet runtime artifacts
 /video/redandblack_2/
 /datasets/processed/
-/trained_models/
 
